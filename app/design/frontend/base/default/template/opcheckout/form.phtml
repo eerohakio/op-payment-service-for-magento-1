@@ -1,0 +1,36 @@
+<?php
+$paymentGroups = $this->getAvailableMethods();
+$skipBankSelection = $this->getSkipBankSelection();
+?>
+<ul class="form-list" id="payment_form_<?php echo $this->getMethodCode() ?>" style="display:none;">
+    <img src="<?php echo $this->getImageUrl(); ?>" style="width: 150px;">
+    <?php if(!$skipBankSelection): ?>
+    <hr style="margin-top: 10px; margin-bottom: 10px;">
+
+    <?php foreach ($paymentGroups as $paymentGroup): ?>
+
+        <div style="clear: both; margin-bottom: 10px;"><?php echo ucfirst($paymentGroup["title"]); ?></div>
+
+        <?php foreach ($paymentGroup["methods"] as $k => $availableMethod): ?>
+            <label for="<?php echo $availableMethod["title"]; ?>">
+            <li style="display: inline-block; width: 100px; height: 70px; border: 1px solid #a0a0a0;">
+
+
+                    <div style="text-align: center; clear: both; margin: 5px;">
+                        <img style="width: 90px; height: 40px;" src="<?php echo $availableMethod["icon"]; ?>">
+                    </div>
+                    <div style="text-align: center; clear: both;">
+                        <input type="radio" id="<?php echo $availableMethod["title"]; ?>" name="opcheckout[payment_methods]" value="<?php echo $availableMethod["id"]; ?>">
+                    </div>
+
+            </li>
+            </label>
+
+        <?php endforeach; ?>
+
+    <?php endforeach; ?>
+    <?php else: ?>
+    <br>
+    You will be redirected to payment provider.
+    <?php endif; ?>
+</ul>

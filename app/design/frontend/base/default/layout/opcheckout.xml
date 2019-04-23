@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <opcheckout_payment_success>
+        <reference name="root">
+            <action method="setTemplate">
+                <template>page/1column.phtml</template>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="opcheckout/index" name="opcheckout_index" template="opcheckout/index.phtml"/>
+        </reference>
+    </opcheckout_payment_success>
+    <opcheckout_payment_selectbank>
+        <reference name="root">
+            <action method="setTemplate">
+                <template>page/1column.phtml</template>
+            </action>
+        </reference>
+        <reference name="head">
+            <action method="addCss">
+                <stylesheet>css/opcheckout.css</stylesheet>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="opcheckout/banks" name="banks" template="opcheckout/banks.phtml"/>
+        </reference>
+    </opcheckout_payment_selectbank>
+</layout>
