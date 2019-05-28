@@ -13,16 +13,16 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
 
     public function indexAction()
     {
-        Mage::log("recept index", null, 'op_checkout.log', true);
+        Mage::log("receipt index", null, 'op_checkout.log', true);
         $this->orderNo = $this->getRequest()->getParam('checkout-reference');
         $this->status = $this->getRequest()->getParam('checkout-status');
         $this->signature = $this->getRequest()->getParam('signature');
         $params = $this->getRequest()->getParams();
 
-        $rcn = "recepit_processing_".$this->orderNo;
+        $rcn = "receipt_processing_".$this->orderNo;
         $processingOrderCache = Mage::app()->getCache()->load($rcn);
 
-        if($processingOrderCache) {
+        if ($processingOrderCache) {
             sleep(1);
             Mage::app()->getCache()->remove($rcn);
         } else {
@@ -36,9 +36,7 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
             $validate = false;
         }
 
-        //var_dump($validate); exit;
-        if($validate)
-        {
+        if ($validate) {
             $this->successAction($params);
         } else {
             $this->failureAction();
@@ -63,7 +61,6 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
         } else {
             Mage::app()->getResponse()->setRedirect(Mage::getUrl('checkout/onepage/failure'))->sendResponse();
         }
-        //exit;*/
     }
 
     public function failureAction()
@@ -71,23 +68,18 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
         Mage::getSingleton('checkout/session')->addError(Mage::helper('opcheckout')->__('Payment failed.'));
 
         $order = Mage::getModel("sales/order")->loadByIncrementId($this->orderNo);
-        if($order->getId() && !in_array($order->getStatus(), ['closed', 'canceled'], true))
-        {
+        if ($order->getId() && !in_array($order->getStatus(), ['closed', 'canceled'], true)) {
             Mage::getModel('opcheckout/opcheckout')->cancelOrderAndActivateQuote($order);
             Mage::app()->getResponse()->setRedirect(Mage::getUrl('checkout/cart'))->sendResponse();
         } else {
             Mage::app()->getResponse()->setRedirect(Mage::getUrl(''))->sendResponse();
         }
         exit;
-
     }
 
     public function confirmAction()
     {
         echo 'confirm';
         exit;
-
-
     }
-
 }

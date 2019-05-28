@@ -10,8 +10,8 @@ class Op_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
     public function notifyCanceledOrder($order)
     {
 
-        $tempalte_id  = 'canceled_order_payment_verification';
-        $email_template = Mage::getModel('core/email_template')->loadDefault($tempalte_id);
+        $template_id  = 'canceled_order_payment_verification';
+        $email_template = Mage::getModel('core/email_template')->loadDefault($template_id);
         $email_template_variables = ["increment_id" => $order->getIncrementId()];
 
         $defaultTo = Mage::getStoreConfig('trans_email/ident_general/email');
@@ -25,15 +25,14 @@ class Op_Checkout_Helper_Data extends Mage_Core_Helper_Abstract
         $email_template->setSenderName($sender_name);
         $email_template->setSenderEmail($defaultTo);
 
-        if(isset($customTo)) {
+        if (isset($customTo)) {
             $emails = explode(',', trim($customTo));
-            foreach($emails as $email) {
+            foreach ($emails as $email) {
                 $recipient = trim($email);
                 echo "sending to ".$email."\n";
                 $email_template->send($recipient, $sender_name, $email_template_variables, $storeId);
             }
         } else {
-
             $email_template->send($defaultTo, $sender_name, $email_template_variables, $storeId);
         }
 

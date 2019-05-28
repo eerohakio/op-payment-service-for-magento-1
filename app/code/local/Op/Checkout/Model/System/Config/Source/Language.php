@@ -1,7 +1,6 @@
 <?php
 class Op_Checkout_Model_System_Config_Source_Language
 {
-
     public function toOptionArray()
     {
         return array(

@@ -13,19 +13,24 @@ class Op_Checkout_PaymentController extends Mage_Core_Controller_Front_Action
         $selectedPaymentMethodRaw = $payment["additional_information"]["opcheckout_payment_method"];
         $selectedPaymentMethodId = preg_replace('/[0-9]{1,2}$/', '', $selectedPaymentMethodRaw);
 
-        if($skipBankSelection) { $selectedPaymentMethodId = 'opcheckout'; }
+        if ($skipBankSelection) {
+            $selectedPaymentMethodId = 'opcheckout';
+        }
         $order->setState(
-            $order->getState(), $order->getStatus(),
-            Mage::helper('opcheckout')->__('Customer is redirected to: '.$selectedPaymentMethodId), null)->save();
+            $order->getState(),
+            $order->getStatus(),
+            Mage::helper('opcheckout')->__('Customer is redirected to: '.$selectedPaymentMethodId),
+            null
+        )->save();
+
         $responseData = $checkoutPayment->getResponseData($order);
 
         $formData = $checkoutPayment->getFormFields($responseData, $selectedPaymentMethodId);
         $formAction = $checkoutPayment->getFormAction($responseData, $selectedPaymentMethodId);
 
-
         if (is_object($responseData)) {
 
-            if($skipBankSelection) {
+            if ($skipBankSelection) {
                 $payment_url = $responseData->href;
                 Mage::app()->getResponse()->setRedirect($payment_url)->sendResponse();
                 exit;

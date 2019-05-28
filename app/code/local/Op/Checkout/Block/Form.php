@@ -13,7 +13,6 @@ class Op_Checkout_Block_Form extends Mage_Payment_Block_Form
         return $logo;
     }
 
-
     protected function getAvailableMethods()
     {
         $checkout_api  = Mage::getModel('opcheckout_api/checkout');
@@ -24,6 +23,4 @@ class Op_Checkout_Block_Form extends Mage_Payment_Block_Form
     {
         return Mage::helper('opcheckout')->skipBankSelection();
     }
-
-
 }

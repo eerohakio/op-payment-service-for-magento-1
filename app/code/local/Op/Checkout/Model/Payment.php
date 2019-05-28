@@ -48,11 +48,9 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
         return $formFields;
     }
 
-
     public function verifyPayment($signature, $status, $params)
     {
-        if($this->opcheckoutApi->getMerchantId() != $params["checkout-account"])
-        {
+        if ($this->opcheckoutApi->getMerchantId() != $params["checkout-account"]) {
             Mage::throwException(Mage::helper('opcheckout')->__('wrong merchant id'));
         }
 
@@ -65,17 +63,10 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
         }
     }
 
-
     public function validatePayment($params)
     {
         $order = Mage::getModel("sales/order")->loadByIncrementId($params["checkout-reference"]);
 
-     /* TODO: Debug stuff for pending opcheckout orders
-       if ($params["checkout-status"] == 'ok' && $order->getStatus() != 'pending_opcheckout')
-        {
-            $params["checkout-status"] = 'pending';
-        }
-    */
         $checkoutPendingStatus = false;
         if (!$order->getId()) {
             Mage::throwException(Mage::helper('opcheckout')->__('No such order.'));
@@ -83,14 +74,12 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
 
         $orderIsCanceled = false;
         if ($order->getState() == Mage_Sales_Model_Order::STATE_CANCELED) {
-            //TODO: notify
             Mage::helper('opcheckout')->notifyCanceledOrder($order);
             $orderIsCanceled = true;
         }
 
         if ($params["checkout-status"] == 'pending') {
-
-            if($order->getStatus() == 'pending_opcheckout') {
+            if ($order->getStatus() == 'pending_opcheckout') {
                 return 'recovery';
             }
 
@@ -98,13 +87,13 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             $orderIsCanceled = true;
         }
 
-       // var_dump($params);
-      //  exit;
-
         if ($order->getBaseTotalDue() == 0) {
             $order->setState(
-                $order->getState(), $order->getStatus(),
-                Mage::helper('opcheckout')->__('OP Checkout tried to confirm already paid order. No actions required.'), null)->save();
+                $order->getState(),
+                $order->getStatus(),
+                Mage::helper('opcheckout')->__('OP Checkout tried to confirm already paid order. No actions required.'),
+                null
+            )->save();
             return true;
         }
 
@@ -114,56 +103,57 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             "method" => $params["checkout-provider"]
         ];
 
-
         $orderPayment = $order->getPayment();
         if ($orderIsCanceled) {
-
             $paymentAdditionalInformation = $orderPayment->getAdditionalInformation();
             $captureData = ["capture_data" => $params];
-            $newAi = array_merge($paymentAdditionalInformation,$captureData);
+            $newAi = array_merge($paymentAdditionalInformation, $captureData);
             $orderPayment->setAdditionalInformation($newAi);
             $orderPayment->save();
-
-
         } else {
             $orderPayment->setTransactionId($params["checkout-transaction-id"]);
             $orderPayment->setIsTransactionClosed(false);
-            $orderPayment->setTransactionAdditionalInfo(Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS, $rawdata);
+            $orderPayment->setTransactionAdditionalInfo(
+                Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS,
+                $rawdata
+            );
             $orderPayment->save();
         }
 
         if ($order->hasInvoices()) {
             $invoice = $order->getInvoiceCollection()->getFirstItem();
         } else {
-            if($order->canInvoice() && !$checkoutPendingStatus)
-            {
-            $invoice = $order->prepareInvoice();
-            $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
-            $invoice->register();
+            if ($order->canInvoice() && !$checkoutPendingStatus) {
+                $invoice = $order->prepareInvoice();
+                $invoice->setRequestedCaptureCase(Mage_Sales_Model_Order_Invoice::CAPTURE_ONLINE);
+                $invoice->register();
             }
         }
 
-
-
-        if($orderIsCanceled)
-        {
-            if($checkoutPendingStatus == true)
-            {
-            $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, 'processing', Mage::helper('opcheckout')->__('OP Checkout payment was verified order with PENDING STATUS. By using payment/bank:') . $params['checkout-provider'], null)->save();
-            $order->setStatus('pending_opcheckout');
-
-            } else {
-            $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, 'processing', Mage::helper('opcheckout')->__('OP Checkout payment was verified CANCELED order. By using payment/bank:') . $params['checkout-provider'], null)->save();
-            }
+        $msg = '';
+        if ($orderIsCanceled) {
+            $msg = $checkoutPendingStatus == true ?
+                'OP Checkout payment was verified order with PENDING STATUS. By using payment/bank:' :
+                'OP Checkout payment was verified CANCELED order. By using payment/bank:';
         } else {
             try {
                 $invoice->pay();
                 $invoice->save();
             } catch (Exception $e) {
-                //TODO: make proper logger ?
                 Mage::log($e->getMessage(), null, 'op_checkout.log');
             }
-            $order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, 'processing', Mage::helper('opcheckout')->__('OP Checkout payment was verified. By using payment/bank:') . $params['checkout-provider'], null)->save();
+            $msg = 'OP Checkout payment was verified. By using payment/bank:';
+        }
+
+        $order->setState(
+            Mage_Sales_Model_Order::STATE_PROCESSING,
+            'processing',
+            Mage::helper('opcheckout')->__($msg) . $params['checkout-provider'],
+            null
+        )->save();
+
+        if (orderIsCanceled && $checkoutPendingStatus == true) {
+            $order->setStatus('pending_opcheckout');
         }
 
         $order->setEmailSent(true);
@@ -172,12 +162,10 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             $order->sendNewOrderEmail();
             $order->save();
         } catch (Exception $e) {
-
             Mage::log($e->getMessage(), null, 'op_checkout.log');
         }
 
-
-        if($orderIsCanceled) {
+        if ($orderIsCanceled) {
             return "recovery";
         }
 
@@ -193,20 +181,12 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             $transactionSave->save();
 
         } catch (Exception $e) {
-            //TODO: make proper logger ?
             Mage::log($e->getMessage(), null, 'op_checkout.log');
-            //$this->_logVerificationFailure($paymentParams['ORDER_NUMBER'], Mage::helper('paytrail')->__('Error while sending/saving invoice: ') . $e->getMessage());
         }
 
         $quote = Mage::getModel('sales/quote')->load($order->getQuoteId());
         $quote->setIsActive(false)->save();
 
         return $invoice;
-
-
     }
-
-
-
-
 }

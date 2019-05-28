@@ -3,8 +3,8 @@ include __DIR__.'/guzzle.phar';
 
 class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 {
-
     const API_ENDPOINT = 'https://api.checkout.fi';
+    const DEFAULT_PAYMENT_PROVIDER_QUERY_AMOUNT = 2500;
 
     protected $checkoutApi;
     protected $merchantId;
@@ -27,19 +27,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
     {
         return $this->merchantId;
     }
-
-    public function getAllPaymentMethods($orderValue = 25)
-    {
-
-        $uri = '/merchants/payment-providers?amount=' . $orderValue * 100;
-        $method = 'get';
-        $response = $this->getResponse($uri, '', $method);
-
-        return $response['data'];
-    }
-
-
-
 
     public function getResponse($uri, $order, $method, $refundId = null, $refundBody = null)
     {
@@ -69,7 +56,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
                 $response = $client->get(self::API_ENDPOINT . $uri, ['body' => '']);
             }
         } catch (\GuzzleHttp\Exception\RequestException $e) {
-            // TODO: should we check here for the error code ?
             if ($e->hasResponse()) {
                 Mage::log('Connection error to Checkout API: ' . $e->getMessage(), null, 'op_checkout.log', true);
                 $response["data"] = $e->getMessage();
@@ -80,16 +66,15 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 
         $responseBody = $response->getBody()->getContents();
 
-        $responseHeaders = array_column(array_map(function ($key, $value) {
-            return [$key, $value[0]];
-        }, array_keys($response->getHeaders()), array_values($response->getHeaders())), 1, 0);
-
-        $debug = 0;
-        if($debug == 1)
-        {
-        Mage::log($responseBody, null, 'checkout_request.log' ,true);
-        Mage::log($responseHeaders, null, 'checkout_request.log' ,true);
-        }
+        $responseHeaders = array_column(
+            array_map(function ($key, $value) {
+                return [$key, $value[0]];
+            },
+            array_keys($response->getHeaders()),
+            array_values($response->getHeaders())),
+            1,
+            0
+        );
 
         $responseHmac = $this->calculateHmac($responseHeaders, $responseBody, $this->merchantSecret);
         $responseSignature = $response->getHeader('signature')[0];
@@ -103,7 +88,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
             return $data;
         }
     }
-
 
     public function getEnabledPaymentMethodGroups()
     {
@@ -130,6 +114,15 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         }
 
         return array_values($groups);
+    }
+
+    protected function getAllPaymentMethods()
+    {
+        $uri = '/merchants/payment-providers?amount=' . self::DEFAULT_PAYMENT_PROVIDER_QUERY_AMOUNT;
+        $method = 'get';
+        $response = $this->getResponse($uri, '', $method);
+
+        return $response['data'];
     }
 
     protected function getEnabledPaymentMethodsByGroup($responseData, $groupId)
@@ -185,7 +178,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         ];
     }
 
-    public function calculateHmac(array $params = [], $body = NULL, $secretKey = NULL)
+    public function calculateHmac(array $params = [], $body = null, $secretKey = null)
     {
         // Keep only checkout- params, more relevant for response validation.
         $includedKeys = array_filter(array_keys($params), function ($key) {
@@ -207,9 +200,9 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 
     public function validateHmac(
         array $params = [],
-        $body = NULL,
-        $signature = NULL,
-        $secretKey = NULL
+        $body = null,
+        $signature = null,
+        $secretKey = null
     ) {
         $hmac = static::calculateHmac($params, $body, $secretKey);
         if ($hmac !== $signature) {
@@ -263,7 +256,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 
         $streetAddressRows = $address->getStreet();
         $streetAddress = $streetAddressRows[0];
-        if(mb_strlen($streetAddress, 'utf-8') > 50) {
+        if (mb_strlen($streetAddress, 'utf-8') > 50) {
             $streetAddress = mb_substr($streetAddress, 0, 50, 'utf-8');
         }
 
@@ -300,7 +293,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return $items;
     }
 
-
     public function _itemArgs($order)
     {
         $items = array();
@@ -328,8 +320,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
                     'type' => 1,
                 );
             }
-
-
         }
 
         if (!$order->getIsVirtual()) {
@@ -385,8 +375,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return $items;
     }
 
-
-
     private function _getDiscountData($order)
     {
         $discountIncl = 0;
@@ -429,5 +417,4 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return Mage::getUrl("opcheckout/receipt", array("_secure" => true));
         return $receiptUrl;
     }
-
 }

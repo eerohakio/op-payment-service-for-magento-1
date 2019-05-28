@@ -2,7 +2,6 @@
 
 class Op_Checkout_Block_Payment_Info extends Mage_Payment_Block_Info
 {
-
     protected function _construct()
     {
         parent::_construct();
@@ -13,6 +12,4 @@ class Op_Checkout_Block_Payment_Info extends Mage_Payment_Block_Info
     {
         return Mage::getStoreConfig('payment/opcheckout/logo');
     }
-
-
 }

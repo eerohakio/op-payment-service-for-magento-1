@@ -25,11 +25,11 @@ class Op_Checkout_Model_Observer extends Mage_Core_Model_Abstract
 
         $orderAdditionalInformation = $order->getPayment()->getAdditionalInformation();
 
-        if(
-            !$order->hasInvoices() &&
+        if (!$order->hasInvoices() &&
             is_array($orderAdditionalInformation["capture_data"]) &&
-            ($order->getState() == Mage_Sales_Model_Order::STATE_CANCELED || $order->getState() == Mage_Sales_Model_Order::STATE_PROCESSING))
-        {
+                ($order->getState() == Mage_Sales_Model_Order::STATE_CANCELED ||
+                $order->getState() == Mage_Sales_Model_Order::STATE_PROCESSING)
+            ) {
             $block->addButton(
                 'rescue_order_button_id',
                 array(
@@ -38,22 +38,12 @@ class Op_Checkout_Model_Observer extends Mage_Core_Model_Abstract
                     'class'   => 'go'
                 )
             );
-            /*
-             * TODO: maybe for later ?
-             * $block->addButton(
-                'refund_payment_button_id',
-                array(
-                    'label'   => Mage::helper('opcheckout')->__('Refund Payment'),
-                    'onclick' => 'setLocation(\'' . $refund_payment_url . '\')',
-                    'class'   => 'go'
-                )
-            );*/
         }
 
         return $this;
     }
 
-    /**Handle uncompleted payment made by current customer before creating new
+    /** Handle uncompleted payment made by current customer before creating new
      * @param $observer
      */
     public function processLastPayment($observer)

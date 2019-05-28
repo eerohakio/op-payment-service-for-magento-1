@@ -5,7 +5,7 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
     protected $_code = "opcheckout";
     protected $_formBlockType = 'opcheckout/form';
     protected $_infoBlockType = 'opcheckout/payment_info';
-    
+
     protected $_isGateway = false;
     protected $_canAuthorize = true;
     protected $_canCapture = true;
@@ -42,7 +42,7 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
 
         $orderAdditionalInformation = $payment->getAdditionalInformation();
         $captureData = $orderAdditionalInformation["capture_data"];
-        if(!is_array($captureData)) {
+        if (!is_array($captureData)) {
             Mage::throwException(Mage::helper('opcheckout')->__('No Capture Data'));
         }
 
@@ -54,27 +54,26 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
             Mage::throwException(Mage::helper('opcheckout')->__('Order already paid.'));
         }
 
-        if($order->hasInvoices())
+        if ($order->hasInvoices())
         {
             Mage::throwException(Mage::helper('opcheckout')->__('Order already invoiced.'));
         }
 
-                $rawdata = [
-                    "orderNo" => $captureData["checkout-reference"],
-                    "stamp" => $captureData["checkout-stamp"],
-                    "method" => $captureData["checkout-provider"]
-                ];
+        $rawdata = [
+            "orderNo" => $captureData["checkout-reference"],
+            "stamp" => $captureData["checkout-stamp"],
+            "method" => $captureData["checkout-provider"]
+        ];
 
-            $payment->setTransactionId($captureData["checkout-transaction-id"]);
-            $payment->setIsTransactionClosed(false);
-            $payment->setTransactionAdditionalInfo(Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS, $rawdata);
-            $amount = $captureData["checkout-amount"]/100;
-            $payment->registerCaptureNotification($amount);
-            $payment->save();
-            $payment->getOrder()->save();
+        $payment->setTransactionId($captureData["checkout-transaction-id"]);
+        $payment->setIsTransactionClosed(false);
+        $payment->setTransactionAdditionalInfo(Mage_Sales_Model_Order_Payment_Transaction::RAW_DETAILS, $rawdata);
+        $amount = $captureData["checkout-amount"]/100;
+        $payment->registerCaptureNotification($amount);
+        $payment->save();
+        $payment->getOrder()->save();
 
         return $this;
-
     }
 
     public function getConfigPaymentAction() {
@@ -115,11 +114,9 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
             $payment->setShouldCloseParentTransaction(!$payment->getCreditmemo()->getInvoice()->canRefund());
 
             return $this;
-
-        }  catch (Exception $e) {
+        } catch (Exception $e) {
             $error = $e->getMessage();
             Mage::log($error, 2, 'opcheckout_critical.log');
-
         }
 
         Mage::throwException(Mage::helper('opcheckout')->__('Refund failed.'));
@@ -148,19 +145,15 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
         if ($status === 201) {
             return true;
         } elseif (($status === 422 || $status === 400) && $this->postRefundRequestEmail($payment, $body)) {
-            // TODO: 422 replaced with 400 ? should we add 4xx check here ?
             return true;
         } else {
-            //TODO: DEAL WITH ERROR ! DON'T JUST LOG IT !
             Mage::log($response, 2, 'opcheckout_critical.log');
             return false;
         }
     }
 
-
     protected function postRefundRequestEmail($payment, $body)
     {
-
         $transactionId = $payment->getParentTransactionId();
 
         $uri = '/payments/' . $transactionId . '/refund/email';
@@ -180,7 +173,6 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
         if ($status === 201) {
             return true;
         } else {
-            //TODO: FIX LOGGER
             Mage::log($response, 2, 'opcheckout_critical.log');
             return false;
         }
@@ -201,12 +193,13 @@ class Op_Checkout_Model_OpcheckoutPayment extends Mage_Payment_Model_Method_Abst
         $info = $this->getInfoInstance();
         $info->setAdditionalInformation(
             'opcheckout_payment_method',
-            $data['payment_methods']);
+            $data['payment_methods']
+        );
 
         $skipBankSelection = Mage::helper('opcheckout')->skipBankSelection();
 
 
-        if(!$skipBankSelection && empty($info->getAdditionalInformation('opcheckout_payment_method'))){
+        if (!$skipBankSelection && empty($info->getAdditionalInformation('opcheckout_payment_method'))){
             Mage::throwException(Mage::helper('opcheckout')->__('Please select payment method.'));
         }
 

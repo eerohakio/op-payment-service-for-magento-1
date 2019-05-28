@@ -2,13 +2,8 @@
 
 class Op_Checkout_Adminhtml_OpcheckoutController extends Mage_Adminhtml_Controller_Action
 {
-
     public function testAction()
     {
-
-
-
-
     }
 
     public function rescueorderAction()
@@ -18,13 +13,12 @@ class Op_Checkout_Adminhtml_OpcheckoutController extends Mage_Adminhtml_Controll
 
         $id = $this->getRequest()->getParam('order_id');
         $order = Mage::getModel('sales/order')->load($id);
-        //$order->setState(Mage_Sales_Model_Order::STATE_PROCESSING, 'processing', Mage::helper('opcheckout')->__('Order was recuesd by admin id: '.$current_admin_user_id), null)->save();
 
         $order->setState(
             Mage_Sales_Model_Order::STATE_PROCESSING,
-            Mage::helper('opcheckout')
-                ->__('Order was recued by admin id: '.$current_admin_user_id), null)
-            ->save();
+            Mage::helper('opcheckout')->__('Order was recued by admin id: '.$current_admin_user_id),
+            null
+        )->save();
 
         $order->setStatus(Mage_Sales_Model_Order::STATE_PROCESSING);
 
@@ -47,11 +41,9 @@ class Op_Checkout_Adminhtml_OpcheckoutController extends Mage_Adminhtml_Controll
             $item->save();
         }
         $order->save();
-        //       $order->getPayment()->capture($order->getPayment());
+
         $order->getPayment()->capture();
 
-
         $this->_redirect('adminhtml/sales_order/view', array('order_id' => $order->getId()));
-
     }
 }
