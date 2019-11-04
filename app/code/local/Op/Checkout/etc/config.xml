@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Op_Checkout>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
         </Op_Checkout>
     </modules>
     <global>
@@ -141,7 +141,7 @@
                 <active>0</active>
                 <allowspecific>0</allowspecific>
                 <model>opcheckout/opcheckoutPayment</model>
-                <title>OP Checkout</title>
+                <title>OP Payment Service</title>
                 <lang>fi_FI</lang>
                 <embed_bank_selection>1</embed_bank_selection>
                 <log>1</log>
@@ -149,7 +149,7 @@
                 <order_status>pending</order_status>
                 <cart_rule_tax_percent>0</cart_rule_tax_percent>
                 <use_fader>1</use_fader>
-                <logo>https://cdn2.hubspot.net/hubfs/2610868/ext-media/op-psp-master-logo.svg</logo>
+                <logo>https://cdn2.hubspot.net/hubfs/2610868/op-financial-group.svg</logo>
             </opcheckout>
         </payment>
     </default>
