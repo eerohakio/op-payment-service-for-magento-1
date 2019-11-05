@@ -1,7 +1,7 @@
 # OP Payment Service Magento 1 Module
 Checkout Finland's payment methods for your Magento 1 web store
 
-***Always perform a backup of your database and source code before installing any Magento 2 extensions.***
+***Always perform a backup of your database and source code before installing any Magento 1 extensions.***
 
 This module works on Magento 1.9.3.\*< community and 1.11.2.\*< commerce versions.
 
