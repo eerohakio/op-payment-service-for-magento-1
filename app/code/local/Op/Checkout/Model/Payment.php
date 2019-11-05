@@ -91,7 +91,7 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             $order->setState(
                 $order->getState(),
                 $order->getStatus(),
-                Mage::helper('opcheckout')->__('OP Checkout tried to confirm already paid order. No actions required.'),
+                Mage::helper('opcheckout')->__('OP Payment Service tried to confirm already paid order. No actions required.'),
                 null
             )->save();
             return true;
@@ -133,8 +133,8 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
         $msg = '';
         if ($orderIsCanceled) {
             $msg = $checkoutPendingStatus == true ?
-                'OP Checkout payment was verified order with PENDING STATUS. By using payment/bank:' :
-                'OP Checkout payment was verified CANCELED order. By using payment/bank:';
+                'OP Payment Service payment was verified order with PENDING STATUS. By using payment/bank:' :
+                'OP Payment Service payment was verified CANCELED order. By using payment/bank:';
         } else {
             try {
                 $invoice->pay();
@@ -142,7 +142,7 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             } catch (Exception $e) {
                 Mage::log($e->getMessage(), null, 'op_checkout.log');
             }
-            $msg = 'OP Checkout payment was verified. By using payment/bank:';
+            $msg = 'OP Payment Service payment was verified. By using payment/bank:';
         }
 
         $order->setState(

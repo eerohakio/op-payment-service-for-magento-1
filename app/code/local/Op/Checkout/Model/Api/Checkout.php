@@ -4,6 +4,12 @@ include __DIR__.'/guzzle.phar';
 class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 {
     const API_ENDPOINT = 'https://api.checkout.fi';
+
+    /**
+     * @var string MODULE_NAME
+     */
+    const MODULE_NAME = 'Op_Checkout'; // in config.xml config -> modules -> Op_Checkout
+
     const DEFAULT_PAYMENT_PROVIDER_QUERY_AMOUNT = 2500;
 
     protected $checkoutApi;
@@ -169,6 +175,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
     public function getResponseHeaders($method)
     {
         return $headers = [
+            'cof-plugin-version' => 'op-payment-service-for-magento-1-'. $this->getExtensionVersion(),
             'checkout-account' => $this->merchantId,
             'checkout-algorithm' => 'sha256',
             'checkout-method' => strtoupper($method),
@@ -416,5 +423,14 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
     {
         return Mage::getUrl("opcheckout/receipt", array("_secure" => true));
         return $receiptUrl;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getExtensionVersion() {
+        /** @var string $version */
+        $version = (string)Mage::getConfig()->getNode('modules/' . self::MODULE_NAME . '/version');
+        return trim($version);
     }
 }

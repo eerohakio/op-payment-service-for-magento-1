@@ -4,7 +4,7 @@
         <payment>
             <groups>
                 <opcheckout translate="label" module="opcheckout">
-                    <label>OP Checkout</label>
+                    <label>OP Payment Service</label>
                     <sort_order>10</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
@@ -80,7 +80,7 @@
                             <show_in_store>0</show_in_store>
                         </sort_order>
                         <!--log translate="label">
-                            <label>OP Checkout Logging</label>
+                            <label>OP Payment Service Logging</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>90</sort_order>
