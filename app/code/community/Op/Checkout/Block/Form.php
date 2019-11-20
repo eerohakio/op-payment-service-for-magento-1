@@ -4,7 +4,8 @@ class Op_Checkout_Block_Form extends Mage_Payment_Block_Form
     protected function _construct()
     {
         parent::_construct();
-        $this->setTemplate('opcheckout/form.phtml');
+        $this->setTemplate('opcheckout/form.phtml')->setMethodLabelAfterHtml($this->getImage());
+
     }
 
     protected function getImageUrl()
@@ -23,4 +24,13 @@ class Op_Checkout_Block_Form extends Mage_Payment_Block_Form
     {
         return Mage::helper('opcheckout')->skipBankSelection();
     }
+
+    protected function getImage()
+    {
+        $html = "<img src='";
+        $html .= $this->getImageUrl() . "'";
+        $html .= " style='width:22px; float:right; '";
+        return $html;
+    }
+
 }
