@@ -3,7 +3,6 @@ $paymentGroups = $this->getAvailableMethods();
 $skipBankSelection = $this->getSkipBankSelection();
 ?>
 <ul class="form-list" id="payment_form_<?php echo $this->getMethodCode() ?>" style="display:none;">
-    <img src="<?php echo $this->getImageUrl(); ?>" style="width: 150px;">
     <?php if (!$skipBankSelection): ?>
     <hr style="margin-top: 10px; margin-bottom: 10px;">
 
