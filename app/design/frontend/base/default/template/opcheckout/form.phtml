@@ -4,8 +4,6 @@ $skipBankSelection = $this->getSkipBankSelection();
 ?>
 <ul class="form-list" id="payment_form_<?php echo $this->getMethodCode() ?>" style="display:none;">
     <?php if (!$skipBankSelection): ?>
-    <hr style="margin-top: 10px; margin-bottom: 10px;">
-
     <?php foreach ($paymentGroups as $paymentGroup): ?>
 
         <div style="clear: both; margin-bottom: 10px;"><?php echo ucfirst($paymentGroup["title"]); ?></div>
