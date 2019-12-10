@@ -15,6 +15,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
     protected $checkoutApi;
     protected $merchantId;
     protected $merchantSecret;
+    protected $quote;
 
     public function __construct()
     {
@@ -22,6 +23,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         $this->checkoutApi = Mage::Helper('opcheckout');
         $this->merchantId = Mage::getStoreConfig('payment/opcheckout/merchant_id');
         $this->merchantSecret =  Mage::helper('core')->decrypt(Mage::getStoreConfig('payment/opcheckout/auth_code'));
+        $this->quote = Mage::getModel('checkout/session')->getQuote();
     }
 
     public function getMerchantSecret()
@@ -124,7 +126,10 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 
     protected function getAllPaymentMethods()
     {
-        $uri = '/merchants/payment-providers?amount=' . self::DEFAULT_PAYMENT_PROVIDER_QUERY_AMOUNT;
+        $quoteData = $this->quote->getData();
+        $grandTotal = $quoteData['grand_total'];
+
+        $uri = '/merchants/payment-providers?amount=' . $grandTotal * 100;
         $method = 'get';
         $response = $this->getResponse($uri, '', $method);
 
