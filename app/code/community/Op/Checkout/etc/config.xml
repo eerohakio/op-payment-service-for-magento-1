@@ -83,6 +83,14 @@
                     <frontName>opcheckout</frontName>
                 </args>
             </opcheckout>
+            <checkout>
+                <use>standard</use>
+                <args>
+                    <modules>
+                        <Op_Checkout before="Mage_Checkout">Op_Checkout</Op_Checkout>
+                    </modules>
+                </args>
+            </checkout>
         </routers>
         <layout>
             <updates>
