@@ -335,9 +335,8 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         }
 
         if (!$order->getIsVirtual()) {
-
             $shippingExclTax = $order->getShippingAmount();
-            $shippingInclTax = $order->getShippingAmount() + $order->getBaseShippingTaxAmount();
+            $shippingInclTax = $shippingExclTax + $order->getShippingTaxAmount();
             $shippingTaxPct = 0;
             if ($shippingExclTax > 0) {
                 $shippingTaxPct = ($shippingInclTax - $shippingExclTax) / $shippingExclTax * 100;
