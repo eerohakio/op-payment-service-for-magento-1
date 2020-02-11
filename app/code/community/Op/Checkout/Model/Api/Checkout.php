@@ -78,8 +78,8 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
             array_map(function ($key, $value) {
                 return [$key, $value[0]];
             },
-            array_keys($response->getHeaders()),
-            array_values($response->getHeaders())),
+                array_keys($response->getHeaders()),
+                array_values($response->getHeaders())),
             1,
             0
         );
@@ -335,8 +335,9 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         }
 
         if (!$order->getIsVirtual()) {
+
             $shippingExclTax = $order->getShippingAmount();
-            $shippingInclTax = $order->getShippingInclTax();
+            $shippingInclTax = $order->getShippingAmount() + $order->getBaseShippingTaxAmount();
             $shippingTaxPct = 0;
             if ($shippingExclTax > 0) {
                 $shippingTaxPct = ($shippingInclTax - $shippingExclTax) / $shippingExclTax * 100;
@@ -352,7 +353,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
                 'title' => $shippingLabel,
                 'code' => '',
                 'amount' => 1,
-                'price' => floatval($order->getShippingInclTax()),
+                'price' => $shippingInclTax,
                 'vat' => round(floatval($shippingTaxPct)),
                 'discount' => 0,
                 'type' => 2,
@@ -383,7 +384,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
                 'type' => 3
             );
         }
-
         return $items;
     }
 
