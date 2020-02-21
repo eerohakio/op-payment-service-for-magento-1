@@ -152,7 +152,7 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
             null
         )->save();
 
-        if (orderIsCanceled && $checkoutPendingStatus == true) {
+        if ($orderIsCanceled && $checkoutPendingStatus == true) {
             $order->setStatus('pending_opcheckout');
         }
 
