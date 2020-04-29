@@ -129,7 +129,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         $quoteData = $this->quote->getData();
         $grandTotal = $quoteData['grand_total'];
 
-        $uri = '/merchants/payment-providers?amount=' . $grandTotal * 100;
+        $uri = '/merchants/payment-providers?amount=' . round($grandTotal * 100);
         $method = 'get';
         $response = $this->getResponse($uri, '', $method);
 
@@ -233,7 +233,7 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
             [
                 'stamp' => hash('sha256', time() . $order->getIncrementId()),
                 'reference' => $order->getIncrementId(),
-                'amount' => $order->getGrandTotal() * 100,
+                'amount' => round($order->getGrandTotal() * 100),
                 'currency' => $order->getOrderCurrencyCode(),
                 'language' => 'FI',
                 'items' => $this->getOrderItems($order),
@@ -292,14 +292,14 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         $items = [];
 
         foreach ($this->_itemArgs($order) as $i => $item) {
-            $items[] = array(
-                'unitPrice' => $item['price'] * 100,
-                'units' => $item['amount'],
+            $items[] = [
+                'unitPrice'     => round($item['price'] * 100),
+                'units'         => $item['amount'],
                 'vatPercentage' => $item['vat'],
-                'description' => $item['title'],
-                'productCode' => $item['code'],
-                'deliveryDate' => date('Y-m-d'),
-            );
+                'description'   => $item['title'],
+                'productCode'   => $item['code'],
+                'deliveryDate'  => date('Y-m-d'),
+            ];
         }
 
         return $items;
