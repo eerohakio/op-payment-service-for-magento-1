@@ -16,16 +16,35 @@ class Op_Checkout_Model_Opcheckout extends Mage_Core_Model_Abstract
     {
     }
 
-
+    /**
+     * @param  Mage_Sales_Model_Order $order
+     * @throws Exception
+     */
     public function cancelOrderAndActivateQuote($order)
     {
-        if ($order && $order->getPayment()->getMethod() == Mage::getModel('opcheckout/opcheckoutPayment')->getCode() && !$order->getInvoiceCollection()->count()) {
-            $orderModel = Mage::getModel('sales/order')->load($order->getId());
-            $quote = Mage::getModel('sales/quote')->load($order->getQuoteId());
-            $quote->setIsActive(true)->save();
-            $orderModel->cancel();
-            $orderModel->setStatus('canceled');
-            $orderModel->save();
+        if ($order && $order->getPayment()->getMethod() == Mage::getModel('opcheckout/opcheckoutPayment')->getCode() && !$order->hasInvoices()) {
+            $quoteId = $order->getQuoteId();
+            $order
+                ->cancel()
+                ->save();
+
+            /** @var Mage_Sales_Model_Quote $quote */
+            $quote = Mage::getModel('sales/quote')->load($quoteId);
+            $quote
+                ->setIsActive(true)
+                ->setReservedOrderId(null)
+                ->save();
+
+            /** @var Mage_Checkout_Model_Session $checkoutSession */
+            $checkoutSession = Mage::getSingleton('checkout/session');
+            $checkoutSession->replaceQuote($quote);
+
+            /** @var Mage_Checkout_Model_Cart $cart */
+            $cart = Mage::getSingleton('checkout/cart');
+            $cart
+                ->setQuote($quote)
+                ->save();
+
         }
     }
 }
