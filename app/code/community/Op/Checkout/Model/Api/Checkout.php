@@ -331,25 +331,25 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         foreach ($order->getAllItems() as $key => $item) {
 
             if ($item->getChildrenItems() && !$item->getProductOptions()['product_calculations']) {
-                $items[] = array(
-                    'title' => $item->getName(),
-                    'code' => $item->getSku(),
-                    'amount' => floatval($item->getQtyOrdered()),
-                    'price' => 0,
-                    'vat' => 0,
+                $items[] = [
+                    'title'    => $item->getName(),
+                    'code'     => $item->getSku(),
+                    'amount'   => floatval($item->getQtyOrdered()),
+                    'price'    => 0,
+                    'vat'      => 0,
                     'discount' => 0,
-                    'type' => 1,
-                );
+                    'type'     => 1,
+                ];
             } else {
-                $items[] = array(
-                    'title' => $item->getName(),
-                    'code' => $item->getSku(),
-                    'amount' => floatval($item->getQtyOrdered()),
-                    'price' => floatval($item->getPriceInclTax()),
-                    'vat' => round(floatval($item->getTaxPercent())),
+                $items[] = [
+                    'title'    => $item->getName(),
+                    'code'     => $item->getSku(),
+                    'amount'   => floatval($item->getQtyOrdered()),
+                    'price'    => floatval($item->getPriceInclTax()),
+                    'vat'      => round(floatval($item->getTaxPercent())),
                     'discount' => 0,
-                    'type' => 1,
-                );
+                    'type'     => 1,
+                ];
             }
         }
 
