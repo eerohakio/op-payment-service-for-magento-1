@@ -56,11 +56,7 @@ class Op_Checkout_Model_Payment extends Mage_Core_Model_Abstract
 
         $hmac = $this->opcheckoutApi->calculateHmac($params, '', $this->opcheckoutApi->getMerchantSecret());
 
-        if ($signature === $hmac && ($status === 'ok' || $status === 'pending')) {
-            return $status;
-        } else {
-            return false;
-        }
+        return ($signature === $hmac && ($status === 'ok' || $status === 'pending'));
     }
 
     public function validatePayment($params)

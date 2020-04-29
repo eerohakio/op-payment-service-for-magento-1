@@ -1,9 +1,15 @@
 <?php
 class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
 {
+    const DISABLE_ACTIVATE_QUOTE_STATUSES = ['closed', 'canceled'];
+
+    /** @var Op_Checkout_Model_Payment */
     protected $checkoutPayment;
+    /** @var string */
     protected $orderNo;
+    /** @var string */
     protected $status;
+    /** @var string */
     protected $signature;
 
     public function _construct()
@@ -30,13 +36,12 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
         }
         try {
             $validate = $this->checkoutPayment->verifyPayment($this->signature, $this->status, $params);
-        } catch (Exception $exception)
-        {
+        } catch (Exception $exception) {
             Mage::log($exception->getMessage(), null, 'op_checkout.log');
             $validate = false;
         }
 
-        if ($validate) {
+        if (true === $validate) {
             $this->successAction($params);
         } else {
             $this->failureAction();
@@ -52,9 +57,7 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
             Mage::log($exception->getMessage(), null, 'op_checkout.log');
         }
 
-
         Mage::log(get_class($invoice), null, 'op_checkout.log', true);
-
 
         if ($invoice instanceof Mage_Sales_Model_Order_Invoice || $invoice == "recovery") {
             Mage::app()->getResponse()->setRedirect(Mage::getUrl('checkout/onepage/success'))->sendResponse();
@@ -68,7 +71,8 @@ class Op_Checkout_ReceiptController extends Mage_Core_Controller_Front_Action
         Mage::getSingleton('checkout/session')->addError(Mage::helper('opcheckout')->__('Payment failed.'));
 
         $order = Mage::getModel("sales/order")->loadByIncrementId($this->orderNo);
-        if ($order->getId() && !in_array($order->getStatus(), ['closed', 'canceled'], true)) {
+        $orderStatus = $order->getStatus();
+        if ($order->getId() && !in_array($orderStatus, self::DISABLE_ACTIVATE_QUOTE_STATUSES, true)) {
             Mage::getModel('opcheckout/opcheckout')->cancelOrderAndActivateQuote($order);
             Mage::app()->getResponse()->setRedirect(Mage::getUrl('checkout/cart'))->sendResponse();
         } else {

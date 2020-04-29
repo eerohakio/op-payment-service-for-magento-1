@@ -23,7 +23,12 @@ class Op_Checkout_PaymentController extends Mage_Core_Controller_Front_Action
             null
         )->save();
 
-        $responseData = $checkoutPayment->getResponseData($order);
+        try {
+            $responseData = $checkoutPayment->getResponseData($order);
+        } catch (Exception $exception) {
+            Mage::getModel('opcheckout/opcheckout')->cancelOrderAndActivateQuote($order);
+            Mage::app()->getResponse()->setRedirect(Mage::getUrl('checkout/cart'))->sendResponse();
+        }
 
         $formData = $checkoutPayment->getFormFields($responseData, $selectedPaymentMethodId);
         $formAction = $checkoutPayment->getFormAction($responseData, $selectedPaymentMethodId);
