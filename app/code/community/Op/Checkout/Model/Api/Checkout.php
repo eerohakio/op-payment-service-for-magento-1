@@ -5,6 +5,8 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 {
     const API_ENDPOINT = 'https://api.checkout.fi';
 
+    const COF_PLUGIN_PREFIX = 'op-payment-service-for-magento-1-';
+
     /**
      * @var string MODULE_NAME
      */
@@ -56,7 +58,6 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
 
         $response = null;
 
-
         try {
             if ($method == 'POST') {
                 $response = $client->post(self::API_ENDPOINT . $uri, ['body' => $body]);
@@ -88,15 +89,17 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         $responseSignature = $response->getHeader('signature')[0];
 
         if ($responseHmac == $responseSignature) {
-            $data = array(
+            return [
                 'status' => $response->getStatusCode(),
                 'data' => json_decode($responseBody)
-            );
-
-            return $data;
+            ];
         }
+        return ['status' => 'fail'];
     }
 
+    /**
+     * @return array
+     */
     public function getEnabledPaymentMethodGroups()
     {
         $responseData = $this->getAllPaymentMethods();
@@ -124,6 +127,9 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return array_values($groups);
     }
 
+    /**
+     * @return mixed
+     */
     protected function getAllPaymentMethods()
     {
         $quoteData = $this->quote->getData();
@@ -136,6 +142,11 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return $response['data'];
     }
 
+    /**
+     * @param $responseData
+     * @param $groupId
+     * @return array
+     */
     protected function getEnabledPaymentMethodsByGroup($responseData, $groupId)
     {
         $allMethods = [];
@@ -145,20 +156,21 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
                 'value' => $provider->id,
                 'label' => $provider->id,
                 'group' => $provider->group,
-                'icon' => $provider->svg
+                'icon'  => $provider->svg
             ];
         }
 
         $i = 1;
 
+        $methods = [];
         foreach ($allMethods as $key => $method) {
             if ($method['group'] == $groupId) {
                 $methods[] = [
                     'checkoutId' => $method['value'],
-                    'id' => $method['value'] . $i++,
-                    'title' => $method['label'],
-                    'group' => $method['group'],
-                    'icon'  => $method['icon']
+                    'id'         => $method['value'] . $i++,
+                    'title'      => $method['label'],
+                    'group'      => $method['group'],
+                    'icon'       => $method['icon']
                 ];
             }
         }
@@ -166,6 +178,10 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return $methods;
     }
 
+    /**
+     * @param $responseData
+     * @return array
+     */
     protected function getEnabledPaymentGroups($responseData)
     {
         $allGroups = [];
@@ -177,19 +193,29 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return array_unique($allGroups);
     }
 
+    /**
+     * @param  string $method
+     * @return array
+     */
     public function getResponseHeaders($method)
     {
         return $headers = [
-            'cof-plugin-version' => 'op-payment-service-for-magento-1-'. $this->getExtensionVersion(),
-            'checkout-account' => $this->merchantId,
+            'cof-plugin-version' => self::COF_PLUGIN_PREFIX . $this->getExtensionVersion(),
+            'checkout-account'   => $this->merchantId,
             'checkout-algorithm' => 'sha256',
-            'checkout-method' => strtoupper($method),
-            'checkout-nonce' => uniqid(true),
+            'checkout-method'    => strtoupper($method),
+            'checkout-nonce'     => uniqid(true),
             'checkout-timestamp' => date('Y-m-d\TH:i:s.000\Z', time()),
-            'content-type' => 'application/json; charset=utf-8',
+            'content-type'       => 'application/json; charset=utf-8',
         ];
     }
 
+    /**
+     * @param array $params
+     * @param null $body
+     * @param null $secretKey
+     * @return string
+     */
     public function calculateHmac(array $params = [], $body = null, $secretKey = null)
     {
         // Keep only checkout- params, more relevant for response validation.
@@ -210,26 +236,16 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return hash_hmac('sha256', join("\n", $hmacPayload), $secretKey);
     }
 
-    public function validateHmac(
-        array $params = [],
-        $body = null,
-        $signature = null,
-        $secretKey = null
-    ) {
-        $hmac = static::calculateHmac($params, $body, $secretKey);
-        if ($hmac !== $signature) {
-            $this->log->critical('Response HMAC signature mismatch!');
-        }
-    }
-
-
+    /**
+     * @param  Mage_Sales_Model_Order $order
+     * @return false|string
+     */
     public function getResponseBody($order)
     {
-
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
         // using json_encode for option.
-        $body = json_encode(
+        return json_encode(
             [
                 'stamp' => hash('sha256', time() . $order->getIncrementId()),
                 'reference' => $order->getIncrementId(),
@@ -256,12 +272,12 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
             ],
             JSON_UNESCAPED_SLASHES
         );
-        /*echo '<pre>';
-        print_r(json_decode($body,true)); exit;*/
-        return $body;
     }
 
-
+    /**
+     * @param Mage_Sales_Model_Order_Address $address
+     * @return array
+     */
     protected function formatAddress($address)
     {
         $country = Mage::getModel('directory/country')->loadByCode($address->getCountryId())->getName();
@@ -286,7 +302,10 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         return $result;
     }
 
-
+    /**
+     * @param  Mage_Sales_Model_Order $order
+     * @return array
+     */
     public function getOrderItems($order)
     {
         $items = [];
@@ -312,25 +331,25 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
         foreach ($order->getAllItems() as $key => $item) {
 
             if ($item->getChildrenItems() && !$item->getProductOptions()['product_calculations']) {
-                $items[] = array(
-                    'title' => $item->getName(),
-                    'code' => $item->getSku(),
-                    'amount' => floatval($item->getQtyOrdered()),
-                    'price' => 0,
-                    'vat' => 0,
+                $items[] = [
+                    'title'    => $item->getName(),
+                    'code'     => $item->getSku(),
+                    'amount'   => floatval($item->getQtyOrdered()),
+                    'price'    => 0,
+                    'vat'      => 0,
                     'discount' => 0,
-                    'type' => 1,
-                );
+                    'type'     => 1,
+                ];
             } else {
-                $items[] = array(
-                    'title' => $item->getName(),
-                    'code' => $item->getSku(),
-                    'amount' => floatval($item->getQtyOrdered()),
-                    'price' => floatval($item->getPriceInclTax()),
-                    'vat' => round(floatval($item->getTaxPercent())),
+                $items[] = [
+                    'title'    => $item->getName(),
+                    'code'     => $item->getSku(),
+                    'amount'   => floatval($item->getQtyOrdered()),
+                    'price'    => floatval($item->getPriceInclTax()),
+                    'vat'      => round(floatval($item->getTaxPercent())),
                     'discount' => 0,
-                    'type' => 1,
-                );
+                    'type'     => 1,
+                ];
             }
         }
 
@@ -426,15 +445,13 @@ class Op_Checkout_Model_Api_Checkout extends Mage_Core_Model_Abstract
     public function getReceiptUrl()
     {
         return Mage::getUrl("opcheckout/receipt", array("_secure" => true));
-        return $receiptUrl;
     }
 
     /**
      * @return string
      */
     protected function getExtensionVersion() {
-        /** @var string $version */
-        $version = (string)Mage::getConfig()->getNode('modules/' . self::MODULE_NAME . '/version');
+        $version = (string) Mage::getConfig()->getNode('modules/' . self::MODULE_NAME . '/version');
         return trim($version);
     }
 }
